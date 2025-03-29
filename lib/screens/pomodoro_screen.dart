@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class PomodoroScreen extends StatefulWidget {
   const PomodoroScreen({Key? key}) : super(key: key);
@@ -41,19 +44,40 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     });
   }
 
+  Future<bool> checkIfStudying() async {
+  try {
+    final response = await http.get(Uri.parse("http://192.168.1.10:5000/status"));
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      return data["is_studying"];
+    }
+  } catch (e) {
+    print("Error: $e");
+  }
+  return false;
+}
+
   // Timer functions.
   void startTimer() {
-    if (isRunning) return;
-    setState(() => isRunning = true);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (remainingSeconds <= 0) {
-        timer.cancel();
-        setState(() => isRunning = false);
-      } else {
-        setState(() => remainingSeconds--);
+  if (isRunning) return;
+  setState(() => isRunning = true);
+
+  _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    if (remainingSeconds <= 0) {
+      timer.cancel();
+      setState(() => isRunning = false);
+    } else {
+      setState(() => remainingSeconds--);
+      
+      // Check if student is studying
+      bool studying = await checkIfStudying();
+      if (!studying) {
+        print("⚠️ Student is distracted!");
+        // You can show a notification here
       }
-    });
-  }
+    }
+  });
+}
 
   void pauseTimer() {
     _timer?.cancel();

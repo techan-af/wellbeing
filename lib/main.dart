@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'screens/pomodoro_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chatbot_screen.dart';
+import 'screens/student_dashboard.dart';
 import 'screens/profile_screen.dart';
 import 'widgets/bottom_navbar.dart';
 
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> {
     PomodoroScreen(),
     DashboardScreen(),
     ChatbotScreen(),
+    StudentDashboard(),
     ProfileScreen(),
   ];
 

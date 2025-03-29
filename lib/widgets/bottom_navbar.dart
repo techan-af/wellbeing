@@ -28,6 +28,10 @@ class BottomNavBar extends StatelessWidget {
           label: 'Chatbot',
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.book),
+          label: 'Student',
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Profile',
         ),
