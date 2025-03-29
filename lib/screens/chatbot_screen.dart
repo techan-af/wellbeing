@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -47,6 +48,35 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     }
   }
 
+  Widget _buildMessage(Map<String, String> msg) {
+    bool isUser = msg['sender'] == 'user';
+    // For bot messages, we use MarkdownBody to render markdown-formatted text.
+    Widget messageContent = isUser
+        ? Text(
+            msg['text'] ?? '',
+            style: TextStyle(color: Colors.white),
+          )
+        : MarkdownBody(
+            data: msg['text'] ?? '',
+            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+              p: Theme.of(context).textTheme.bodyMedium,
+            ),
+          );
+
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 4),
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isUser ? Colors.blue : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: messageContent,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,23 +90,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               padding: EdgeInsets.all(8),
               itemCount: messages.length,
               itemBuilder: (context, index) {
-                var msg = messages[index];
-                bool isUser = msg['sender'] == 'user';
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 4),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isUser ? Colors.blue : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      msg['text'] ?? '',
-                      style: TextStyle(color: isUser ? Colors.white : Colors.black),
-                    ),
-                  ),
-                );
+                return _buildMessage(messages[index]);
               },
             ),
           ),
