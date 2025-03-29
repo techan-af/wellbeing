@@ -1,245 +1,11 @@
-// import 'dart:async';
-// import 'package:flutter/material.dart';
-// import 'package:table_calendar/table_calendar.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-
-
-// class PomodoroScreen extends StatefulWidget {
-//   const PomodoroScreen({Key? key}) : super(key: key);
-
-//   @override
-//   _PomodoroScreenState createState() => _PomodoroScreenState();
-// }
-
-// class _PomodoroScreenState extends State<PomodoroScreen> {
-//   // Timer variables (in seconds).
-//   int selectedDuration = 25 * 60;
-//   int remainingSeconds = 25 * 60;
-//   Timer? _timer;
-//   bool isRunning = false;
-
-//   // Simulated pomodoro completions for each day (keyed by day number) for current month.
-//   Map<int, int> dailyPomodoros = {};
-
-//   // TableCalendar state.
-//   DateTime _focusedDay = DateTime.now();
-//   DateTime? _selectedDay;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _selectedDay = _focusedDay;
-//     generatePomodoroData();
-//   }
-
-//   /// Generate simulated pomodoro data for the current month.
-//   void generatePomodoroData() {
-//     final now = DateTime.now();
-//     int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-//     setState(() {
-//       dailyPomodoros = {
-//         for (int day = 1; day <= daysInMonth; day++) day: day % 4,
-//       };
-//     });
-//   }
-
-//   Future<bool> checkIfStudying() async {
-//   try {
-//     final response = await http.get(Uri.parse("http://192.168.1.10:5000/status"));
-//     if (response.statusCode == 200) {
-//       var data = json.decode(response.body);
-//       return data["is_studying"];
-//     }
-//   } catch (e) {
-//     print("Error: $e");
-//   }
-//   return false;
-// }
-
-//   // Timer functions.
-//   void startTimer() {
-//   if (isRunning) return;
-//   setState(() => isRunning = true);
-
-//   _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-//     if (remainingSeconds <= 0) {
-//       timer.cancel();
-//       setState(() => isRunning = false);
-//     } else {
-//       setState(() => remainingSeconds--);
-      
-//       // Check if student is studying
-//       bool studying = await checkIfStudying();
-//       if (!studying) {
-//         print("⚠️ Student is distracted!");
-//         // You can show a notification here
-//       }
-//     }
-//   });
-// }
-
-//   void pauseTimer() {
-//     _timer?.cancel();
-//     setState(() => isRunning = false);
-//   }
-
-//   void resetTimer(int minutes) {
-//     _timer?.cancel();
-//     setState(() {
-//       selectedDuration = minutes * 60;
-//       remainingSeconds = minutes * 60;
-//       isRunning = false;
-//     });
-//   }
-
-//   /// Format seconds as mm:ss.
-//   String formatTime(int seconds) {
-//     final minutes = seconds ~/ 60;
-//     final secs = seconds % 60;
-//     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-//   }
-
-//   /// Returns the events for a given day.
-//   List<dynamic> _getEventsForDay(DateTime day) {
-//     // Only show events for the current month/year.
-//     if (day.month != DateTime.now().month || day.year != DateTime.now().year) {
-//       return [];
-//     }
-//     int count = dailyPomodoros[day.day] ?? 0;
-//     if (count > 0) return [count];
-//     return [];
-//   }
-
-//   @override
-//   void dispose() {
-//     _timer?.cancel();
-//     super.dispose();
-//   }
-    
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Pomodoro Timer & Shop'),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
-//         child: SingleChildScrollView(
-//           child: Column(
-//             children: [
-//               // Timer display.
-//               Text(
-//                 formatTime(remainingSeconds),
-//                 style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
-//               ),
-//               const SizedBox(height: 20),
-//               // Duration selection.
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   ChoiceChip(
-//                     label: const Text("25 Minutes"),
-//                     selected: selectedDuration == 25 * 60,
-//                     onSelected: (selected) {
-//                       if (selected) resetTimer(25);
-//                     },
-//                   ),
-//                   const SizedBox(width: 10),
-//                   ChoiceChip(
-//                     label: const Text("50 Minutes"),
-//                     selected: selectedDuration == 50 * 60,
-//                     onSelected: (selected) {
-//                       if (selected) resetTimer(50);
-//                     },
-//                   ),
-//                 ],
-//               ),
-//               const SizedBox(height: 30),
-//               // Play/Pause button.
-//               IconButton(
-//                 iconSize: 70,
-//                 icon: Icon(
-//                   isRunning ? Icons.pause_circle_filled : Icons.play_circle_fill,
-//                   color: Colors.blue,
-//                 ),
-//                 onPressed: () => isRunning ? pauseTimer() : startTimer(),
-//               ),
-//               const SizedBox(height: 30),
-//               // Calendar using TableCalendar.
-//               TableCalendar(
-//                 firstDay: DateTime.utc(DateTime.now().year, DateTime.now().month, 1),
-//                 lastDay: DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day + 31),
-//                 focusedDay: _focusedDay,
-//                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-//                 eventLoader: _getEventsForDay,
-//                 calendarFormat: CalendarFormat.month,
-//                 headerStyle: const HeaderStyle(
-//                   formatButtonVisible: false,
-//                   titleCentered: true,
-//                 ),
-//                 calendarStyle: const CalendarStyle(
-//                   todayDecoration: BoxDecoration(
-//                     color: Colors.orange,
-//                     shape: BoxShape.circle,
-//                   ),
-//                 ),
-//                 onDaySelected: (selectedDay, focusedDay) {
-//                   setState(() {
-//                     _selectedDay = selectedDay;
-//                     _focusedDay = focusedDay;
-//                   });
-//                 },
-//                 // Custom markers based on pomodoro count.
-//                 calendarBuilders: CalendarBuilders(
-//                   markerBuilder: (context, day, events) {
-//                     if (events.isNotEmpty) {
-//                       int count = events.first as int;
-//                       Color markerColor;
-//                       if (count == 1) {
-//                         markerColor = Colors.lightBlue.shade200;
-//                       } else if (count == 2) {
-//                         markerColor = Colors.lightBlue.shade400;
-//                       } else if (count >= 3) {
-//                         markerColor = Colors.lightBlue.shade700;
-//                       } else {
-//                         markerColor = Colors.lightBlue.shade50;
-//                       }
-//                       return Positioned(
-//                         bottom: 1,
-//                         child: Container(
-//                           width: 16,
-//                           height: 16,
-//                           decoration: BoxDecoration(
-//                             color: markerColor,
-//                             shape: BoxShape.circle,
-//                           ),
-//                           child: Center(
-//                             child: Text(
-//                               count.toString(),
-//                               style: const TextStyle(fontSize: 10, color: Colors.white),
-//                             ),
-//                           ),
-//                         ),
-//                       );
-//                     }
-//                     return const SizedBox();
-//                   },
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
+import 'package:table_calendar/table_calendar.dart';
 
 class PomodoroScreen extends StatefulWidget {
   const PomodoroScreen({Key? key}) : super(key: key);
@@ -258,6 +24,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   int points = 0;
   int streak = 0;
   DateTime lastSessionDate = DateTime.now().subtract(const Duration(days: 1));
+  double constructionProgress = 0.0;
 
   // Calendar state
   DateTime _focusedDay = DateTime.now();
@@ -269,17 +36,46 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   // Available durations
   final List<int> availableDurations = [15, 25, 30, 45, 50, 60];
 
+  // House parts
+  final List<String> houseParts = [
+    'assets/house/foundation.svg',
+    'assets/house/walls.svg',
+    'assets/house/roof.svg',
+    'assets/house/windows.svg',
+    'assets/house/doors.svg',
+  ];
+
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _loadSessionData();
+    _verifyAssets();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _verifyAssets() async {
+    for (var asset in houseParts) {
+      try {
+        await rootBundle.load(asset);
+        print('Asset loaded: $asset');
+      } catch (e) {
+        print('Failed to load asset: $asset');
+        print('Error: $e');
+      }
+    }
+    try {
+      await rootBundle.load('assets/house/empty_lot.svg');
+      print('Asset loaded: assets/house/empty_lot.svg');
+    } catch (e) {
+      print('Failed to load asset: assets/house/empty_lot.svg');
+      print('Error: $e');
+    }
   }
 
   Future<void> _loadSessionData() async {
@@ -293,6 +89,77 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       }
       _calculateStreak();
     });
+  }
+
+  Widget _buildHouseConstruction() {
+    return Column(
+      children: [
+        Text(
+          'Building Your House: ${(constructionProgress * 100).toStringAsFixed(0)}%',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        Container(
+          height: 200,
+          child: Stack(
+            children: [
+              // Background (empty lot)
+              _buildSvgAsset('assets/house/empty_lot.svg'),
+              
+              // Foundation - appears at 20% and fully visible by 40%
+              _buildHousePart(0, 0.2, 0.4),
+              
+              // Walls - appears at 40% and fully visible by 60%
+              _buildHousePart(1, 0.4, 0.6),
+              
+              // Roof - appears at 60% and fully visible by 80%
+              _buildHousePart(2, 0.6, 0.8),
+              
+              // Windows - appears at 80% and fully visible by 100%
+              _buildHousePart(3, 0.8, 1.0),
+              
+              // Doors - appears at 90% and fully visible by 100%
+              _buildHousePart(4, 0.9, 1.0),
+            ],
+          ),
+        ),
+        LinearProgressIndicator(
+          value: constructionProgress,
+          minHeight: 10,
+          backgroundColor: Colors.grey[300],
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHousePart(int partIndex, double appearAt, double fullyVisibleAt) {
+    if (constructionProgress < appearAt) return SizedBox.shrink();
+    
+    double opacity = ((constructionProgress - appearAt) / (fullyVisibleAt - appearAt)).clamp(0.0, 1.0);
+    
+    return Opacity(
+      opacity: opacity,
+      child: _buildSvgAsset(houseParts[partIndex]),
+    );
+  }
+
+  Widget _buildSvgAsset(String path) {
+    try {
+      return SvgPicture.asset(
+        path,
+        placeholderBuilder: (context) => Container(
+          color: Colors.grey[200],
+          child: Center(child: Text('Loading...')),
+        ),
+      );
+    } catch (e) {
+      print('Error loading SVG: $path - $e');
+      return Container(
+        color: Colors.red[100],
+        child: Center(child: Text('Missing asset')),
+      );
+    }
   }
 
   void _calculateStreak() {
@@ -314,34 +181,22 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     });
   }
 
-  Future<bool> checkIfStudying() async {
-    try {
-      final response = await http.get(Uri.parse("http://192.168.1.10:5000/status"));
-      if (response.statusCode == 200) {
-        var data = json.decode(response.body);
-        return data["is_studying"];
-      }
-    } catch (e) {
-      print("Error: $e");
-    }
-    return false;
-  }
-
   void startTimer() {
     if (isRunning) return;
     setState(() => isRunning = true);
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    
+    final totalSeconds = selectedDuration * 60;
+    final updateInterval = 1; // Update every second
+    
+    _timer = Timer.periodic(Duration(seconds: updateInterval), (timer) async {
       if (remainingSeconds <= 0) {
         timer.cancel();
         _completeSession();
       } else {
-        setState(() => remainingSeconds--);
-        
-        bool studying = await checkIfStudying();
-        if (!studying) {
-          print("⚠️ Student is distracted!");
-        }
+        setState(() {
+          remainingSeconds--;
+          constructionProgress = 1 - (remainingSeconds / totalSeconds);
+        });
       }
     });
   }
@@ -405,6 +260,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       selectedDuration = minutes;
       remainingSeconds = minutes * 60;
       isRunning = false;
+      constructionProgress = 0.0;
     });
   }
 
@@ -445,6 +301,8 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           child: Column(
             children: [
               _buildStatsRow(),
+              const SizedBox(height: 20),
+              _buildHouseConstruction(),
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(20),

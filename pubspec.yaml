@@ -18,6 +18,9 @@ dependencies:
   google_generative_ai: ^0.4.6
   intl: ^0.20.2
   table_calendar: ^3.0.8
+  flutter_svg: ^2.0.7
+  
+
 
 dev_dependencies:
   flutter_test:
@@ -25,6 +28,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.1
   flutter_lints: ^5.0.0
+  
 
 flutter_native_splash:
   color: "#ffffff"
@@ -43,3 +47,9 @@ flutter:
   assets:
     - assets/logo.png
     - assets/icon.png
+    - assets/house/empty_lot.svg
+    - assets/house/foundation.svg
+    - assets/house/walls.svg
+    - assets/house/roof.svg
+    - assets/house/windows.svg
+    - assets/house/doors.svg
