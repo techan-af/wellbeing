@@ -53,3 +53,9 @@ flutter:
     - assets/house/roof.svg
     - assets/house/windows.svg
     - assets/house/doors.svg
+    - assets/store/pen.jpg
+    - assets/store/bottle.jpg
+    - assets/store/diary.jpg
+    - assets/store/tshirt.jpg
+    - assets/store/stickers.jpg
+    - assets/store/mug.jpg

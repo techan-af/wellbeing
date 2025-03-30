@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:table_calendar/table_calendar.dart';
+import 'package:well_being/screens/store_screen.dart';
 
 class PomodoroScreen extends StatefulWidget {
   const PomodoroScreen({Key? key}) : super(key: key);
@@ -44,6 +45,13 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     'assets/house/windows.svg',
     'assets/house/doors.svg',
   ];
+
+  // Color scheme
+  final Color primaryColor = const Color(0xFF6C5CE7);
+  final Color secondaryColor = const Color(0xFF00CEFF);
+  final Color accentColor = const Color(0xFFFD79A8);
+  final Color backgroundColor = const Color(0xFFF8F9FA);
+  final Color textColor = const Color(0xFF2D3436);
 
   @override
   void initState() {
@@ -280,46 +288,66 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Focus Timer'),
+        title: const Text('Focus Timer', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: primaryColor,
+        elevation: 0,
+        centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
+          IconButton(
+            icon: Stack(
               children: [
-                const Icon(Icons.star, color: Colors.amber),
-                const SizedBox(width: 4),
-                Text('$points', style: const TextStyle(fontSize: 18)),
+                const Icon(Icons.shopping_cart, size: 28),
+                Positioned(
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      '$points',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               ],
             ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => StoreScreen(points: points)),
+              );
+            },
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
         child: SingleChildScrollView(
           child: Column(
             children: [
               _buildStatsRow(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _buildHouseConstruction(),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  formatTime(remainingSeconds),
-                  style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+              _buildTimerCircle(),
+              const SizedBox(height: 24),
               _buildDurationSelector(),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildControlButtons(),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               _buildCalendar(),
             ],
           ),
@@ -328,122 +356,271 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     );
   }
 
+  Widget _buildTimerCircle() {
+    return Container(
+      width: 200,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.2),
+            blurRadius: 15,
+            spreadRadius: 5,
+          ),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primaryColor.withOpacity(0.8), secondaryColor.withOpacity(0.8)],
+        ),
+      ),
+      child: Center(
+        child: Text(
+          formatTime(remainingSeconds),
+          style: TextStyle(
+            fontSize: 42,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 10,
+                color: Colors.black.withOpacity(0.2),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatsRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildStatCard("Sessions", completedSessions.toString(), Icons.timer),
-        _buildStatCard("Streak", "$streak day${streak != 1 ? 's' : ''}", Icons.local_fire_department),
-        _buildStatCard("Points", points.toString(), Icons.star),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatCard("Sessions", completedSessions.toString(), Icons.timer_outlined),
+          _buildStatCard("Streak", "$streak", Icons.local_fire_department_outlined),
+          _buildStatCard("Points", "$points", Icons.star_outline),
+        ],
+      ),
     );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: primaryColor),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
+        ),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12,
+            color: textColor.withOpacity(0.6),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDurationSelector() {
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 24),
-            const SizedBox(height: 4),
-            Text(title, style: const TextStyle(fontSize: 12)),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              "Session Duration",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: availableDurations.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final duration = availableDurations[index];
+                  return ChoiceChip(
+                    label: Text(
+                      "$duration min",
+                      style: TextStyle(
+                        color: selectedDuration == duration 
+                            ? Colors.white 
+                            : primaryColor,
+                      ),
+                    ),
+                    selected: selectedDuration == duration,
+                    onSelected: (selected) {
+                      if (selected) resetTimer(duration);
+                    },
+                    selectedColor: primaryColor,
+                    backgroundColor: primaryColor.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: primaryColor,
+                inactiveTrackColor: primaryColor.withOpacity(0.2),
+                thumbColor: primaryColor,
+                overlayColor: primaryColor.withOpacity(0.1),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                trackHeight: 4,
+              ),
+              child: Slider(
+                value: selectedDuration.toDouble(),
+                min: 5,
+                max: 120,
+                divisions: 23,
+                label: "$selectedDuration minutes",
+                onChanged: (value) {
+                  setState(() {
+                    selectedDuration = value.round();
+                    remainingSeconds = selectedDuration * 60;
+                  });
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDurationSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Session Duration (minutes):", style: TextStyle(fontSize: 16)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: availableDurations.map((duration) {
-            return FilterChip(
-              label: Text("$duration"),
-              selected: selectedDuration == duration,
-              onSelected: (selected) {
-                if (selected) resetTimer(duration);
-              },
-              selectedColor: Theme.of(context).colorScheme.primary,
-              checkmarkColor: Colors.white,
-              labelStyle: TextStyle(
-                color: selectedDuration == duration 
-                    ? Colors.white 
-                    : Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 8),
-        Slider(
-          value: selectedDuration.toDouble(),
-          min: 5,
-          max: 120,
-          divisions: 23,
-          label: "$selectedDuration minutes",
-          onChanged: (value) {
-            setState(() {
-              selectedDuration = value.round();
-              remainingSeconds = selectedDuration * 60;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildControlButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (!isRunning)
-          ElevatedButton.icon(
-            icon: const Icon(Icons.play_arrow),
-            label: const Text("Start"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      if (!isRunning)
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor, // Changed from primary
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: startTimer,
+            elevation: 2,
           ),
-        if (isRunning)
-          ElevatedButton.icon(
-            icon: const Icon(Icons.pause),
-            label: const Text("Pause"),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              backgroundColor: Colors.orange,
-            ),
-            onPressed: pauseTimer,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.play_arrow, size: 24),
+              SizedBox(width: 8),
+              Text("Start", style: TextStyle(fontSize: 16)),
+            ],
           ),
-        const SizedBox(width: 16),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.refresh),
-          label: const Text("Reset"),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-          onPressed: () => resetTimer(selectedDuration),
+          onPressed: startTimer,
         ),
-      ],
-    );
-  }
+      if (isRunning)
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: accentColor, // Changed from primary
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.pause, size: 24),
+              SizedBox(width: 8),
+              Text("Pause", style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          onPressed: pauseTimer,
+        ),
+      const SizedBox(width: 16),
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryColor, // Changed from primary
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          side: BorderSide(color: primaryColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.refresh, size: 24),
+            SizedBox(width: 8),
+            Text("Reset", style: TextStyle(fontSize: 16)),
+          ],
+        ),
+        onPressed: () => resetTimer(selectedDuration),
+      ),
+    ],
+  );
+}
 
   Widget _buildCalendar() {
     return Card(
-      elevation: 4,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text("Your Focus History", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text(
+              "Your Focus History",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 12),
             TableCalendar(
               firstDay: DateTime.utc(DateTime.now().year - 1, 1, 1),
               lastDay: DateTime.utc(DateTime.now().year + 1, 12, 31),
@@ -451,19 +628,31 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               eventLoader: _getEventsForDay,
               calendarFormat: CalendarFormat.month,
-              headerStyle: const HeaderStyle(
+              headerStyle: HeaderStyle(
                 formatButtonVisible: false,
                 titleCentered: true,
+                titleTextStyle: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                ),
+                leftChevronIcon: Icon(Icons.chevron_left, color: primaryColor),
+                rightChevronIcon: Icon(Icons.chevron_right, color: primaryColor),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               calendarStyle: CalendarStyle(
                 todayDecoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: secondaryColor.withOpacity(0.3),
                   shape: BoxShape.circle,
                 ),
                 selectedDecoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: primaryColor,
                   shape: BoxShape.circle,
                 ),
+                weekendTextStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                defaultTextStyle: TextStyle(color: textColor),
               ),
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
@@ -498,7 +687,11 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                         child: Center(
                           child: Text(
                             count.toString(),
-                            style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 10, 
+                              color: Colors.white, 
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
